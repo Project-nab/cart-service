@@ -1,6 +1,8 @@
 package com.icomerce.shopping.cart.services.impl;
 
 import com.icomerce.shopping.cart.entitties.Cart;
+import com.icomerce.shopping.cart.entitties.CartStatus;
+import com.icomerce.shopping.cart.exception.InvalidCartSessionIdException;
 import com.icomerce.shopping.cart.exception.InvalidQuantityException;
 import com.icomerce.shopping.cart.exception.ProductCodeNotFoundException;
 import com.icomerce.shopping.cart.exception.QuantityOverException;
@@ -62,5 +64,22 @@ public class CartServiceTest {
             ProductCodeNotFoundException, QuantityOverException {
         cartService.addCart("baonc93@gmail.com", "4EF9C11DD7E95AEA3505D0BF17F23DAC",
                 "WRONG_PRODUCT_CODE", 0);
+    }
+
+    @Test(expected = InvalidCartSessionIdException.class)
+    public void whenGetCartWrongCartId_thenThrowException() throws InvalidCartSessionIdException {
+        cartService.getCartBySessionId("WRONG_SESSION_ID");
+    }
+
+    @Test
+    public void whenCreateCartAndUpdateCartStatus_thenReturnCartNewStatus() throws InvalidQuantityException,
+            ProductCodeNotFoundException, QuantityOverException, InvalidCartSessionIdException {
+        // When
+        cartService.addCart("baonc93@gmail.com", "4EF9C11DD7E95AEA3505D0BF17F23DAC",
+                "ADIDAS_TSHIRT_01", 1);
+        Cart cart = cartService.updateStatus("4EF9C11DD7E95AEA3505D0BF17F23DAC", CartStatus.DELIVERING);
+
+        // Then
+        assertEquals(CartStatus.DELIVERING, cart.getCartStatus());
     }
 }

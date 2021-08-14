@@ -1,6 +1,7 @@
 package com.icomerce.shopping.cart.controllers;
 
 import com.icomerce.shopping.cart.entitties.Cart;
+import com.icomerce.shopping.cart.exception.InvalidCartSessionIdException;
 import com.icomerce.shopping.cart.exception.InvalidQuantityException;
 import com.icomerce.shopping.cart.exception.ProductCodeNotFoundException;
 import com.icomerce.shopping.cart.exception.QuantityOverException;
@@ -58,5 +59,31 @@ public class CartController {
         String username = principal.getName();
         Page<Cart> carts = cartService.getAll(username, offset, limit);
         return new BaseResponse(HttpServletResponse.SC_OK, "Success", carts);
+    }
+
+    @RequestMapping(value = "/carts/{sessionId}", method = RequestMethod.GET)
+    public BaseResponse findByCartSessionId(@PathVariable(value = "sessionId") String sessionId) {
+        Cart cart;
+        try {
+            cart = cartService.getCartBySessionId(sessionId);
+            return new BaseResponse(HttpServletResponse.SC_OK, "Success", cart);
+        } catch (InvalidCartSessionIdException invalidCartSessionIdException) {
+            log.error("Invalid cart session id");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return new BaseResponse(HttpServletResponse.SC_BAD_REQUEST, invalidCartSessionIdException.getMessage(), null);
+        }
+    }
+
+    @RequestMapping(value = "/carts/{sessionId}", method = RequestMethod.PUT)
+    public BaseResponse updateCartStatus(@RequestBody CreateCartRequest request,
+                                         @PathVariable(value = "sessionId") String sessionId) {
+        try {
+            Cart cart = cartService.updateStatus(sessionId, request.getCartStatus());
+            return new BaseResponse(HttpServletResponse.SC_OK, "Success", cart);
+        } catch (InvalidCartSessionIdException e) {
+            log.error(e.getMessage());
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return new BaseResponse(HttpServletResponse.SC_BAD_REQUEST, e.getMessage(), null);
+        }
     }
 }

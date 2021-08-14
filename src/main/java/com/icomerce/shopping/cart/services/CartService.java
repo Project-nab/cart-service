@@ -1,6 +1,8 @@
 package com.icomerce.shopping.cart.services;
 
 import com.icomerce.shopping.cart.entitties.Cart;
+import com.icomerce.shopping.cart.entitties.CartStatus;
+import com.icomerce.shopping.cart.exception.InvalidCartSessionIdException;
 import com.icomerce.shopping.cart.exception.InvalidQuantityException;
 import com.icomerce.shopping.cart.exception.ProductCodeNotFoundException;
 import com.icomerce.shopping.cart.exception.QuantityOverException;
@@ -10,4 +12,6 @@ public interface CartService {
     Cart addCart(String username, String sessionId, String productCode, int quantity) throws
             QuantityOverException, ProductCodeNotFoundException, InvalidQuantityException;
     Page<Cart> getAll(String username, int offset, int limit);
+    Cart getCartBySessionId(String sessionId) throws InvalidCartSessionIdException;
+    Cart updateStatus(String sessionId, CartStatus cartStatus) throws InvalidCartSessionIdException;
 }

@@ -4,17 +4,16 @@ import com.icomerce.shopping.cart.clients.ProductClient;
 import com.icomerce.shopping.cart.entitties.Cart;
 import com.icomerce.shopping.cart.entitties.CartItem;
 import com.icomerce.shopping.cart.entitties.CartStatus;
+import com.icomerce.shopping.cart.exception.InvalidCartSessionIdException;
 import com.icomerce.shopping.cart.exception.InvalidQuantityException;
 import com.icomerce.shopping.cart.exception.ProductCodeNotFoundException;
 import com.icomerce.shopping.cart.exception.QuantityOverException;
-import com.icomerce.shopping.cart.payload.response.BaseResponse;
 import com.icomerce.shopping.cart.payload.response.ProductClientResponse;
 import com.icomerce.shopping.cart.repositories.CartItemRepo;
 import com.icomerce.shopping.cart.repositories.CartRepo;
 import com.icomerce.shopping.cart.services.CartService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -84,5 +83,25 @@ public class CartServiceImp implements CartService {
     @Cacheable(value = "carts")
     public Page<Cart> getAll(String username, int offset, int limit) {
         return cartRepo.findAllByUsername(username, PageRequest.of(offset, limit));
+    }
+
+    @Override
+    public Cart getCartBySessionId(String sessionId) throws InvalidCartSessionIdException {
+        Optional<Cart> cart = cartRepo.findBySessionId(sessionId);
+        if(cart.isPresent()) {
+            return cart.get();
+        }
+        throw new InvalidCartSessionIdException("Invalid cart session id " + sessionId);
+    }
+
+    @Override
+    public Cart updateStatus(String sessionId, CartStatus cartStatus) throws InvalidCartSessionIdException {
+        Optional<Cart> cart = cartRepo.findBySessionId(sessionId);
+        if(cart.isPresent()) {
+            cart.get().setCartStatus(cartStatus);
+            cartRepo.save(cart.get());
+            return cart.get();
+        }
+        throw new InvalidCartSessionIdException("Invalid cart session id " + sessionId);
     }
 }
